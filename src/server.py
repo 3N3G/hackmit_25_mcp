@@ -30,7 +30,7 @@ Returns:
 def propose_meeting(name: str, target_name: str, email: str, my_availability: str) -> str:
     email = f"Hey {target_name}!\n\n" \
         "Would love to meet you soon! Here are my available times over the next week:\n\n" \
-        f"{my_availability}" \
+        f"{my_availability}\n\n" \
         "Best regards,\n" \
         f"{name}"
 

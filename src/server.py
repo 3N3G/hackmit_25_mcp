@@ -1,47 +1,97 @@
 #!/usr/bin/env python3
 import os
-import random
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from datetime import datetime
 from fastmcp import FastMCP
-from icalendar import Calendar, Event
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import smtplib
-import pytz
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# In-memory storage (replace with a database in production)
-scheduling_requests: Dict[str, dict] = {}
-
-# Email configuration (configure these in your .env file)
-SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
-EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-
 # Initialize FastMCP
 
 mcp = FastMCP("Scheduling MCP Server")
 
-@mcp.prompt("send_available_times")
-def send_available_times(name: str, email: str) -> str:
+@mcp.tool("propose_meeting")
+def propose_meeting(name: str, target_name: str, email: str, my_availability: str) -> str:
     """
-    Gets the availability of the user and sends it to another user
+    Returns the email to propose a meeting to another user
     """
 
-    prompt = "Find all my available times next week and send them to " + email + " in the following format:\n\n" \
-        "Hey " + name + "!\n\n" \
+    email = f"Hey {target_name}!\n\n" \
         "Would love to meet you soon! Here are my available times over the next week:\n\n" \
-        "<available times>\n\n" \
+        f"{my_availability}" \
         "Best regards,\n" \
-        "<Your Name>"
+        f"{name}"
 
-    return prompt
+    return email
+
+
+@dataclass
+class TimeInterval:
+    start: datetime
+    end: datetime
+    
+    def overlaps(self, other: 'TimeInterval') -> bool:
+        return (self.start < other.end) and (other.start < self.end)
+    
+    def intersection(self, other: 'TimeInterval') -> 'TimeInterval':
+        if not self.overlaps(other):
+            return None
+        start = max(self.start, other.start)
+        end = min(self.end, other.end)
+        return TimeInterval(start=start, end=end)
+
+
+def find_availability_intersection(
+    slots1: List[TimeInterval],
+    slots2: List[TimeInterval]
+) -> List[TimeInterval]:
+    """Find all overlapping time intervals between two lists of time slots."""
+    result = []
+    for slot1 in slots1:
+        for slot2 in slots2:
+            if slot1.overlaps(slot2):
+                intersection = slot1.intersection(slot2)
+                if intersection:
+                    result.append(intersection)
+    return result
+
+
+@mcp.tool(description="Find common available times between two people")
+def find_common_availability(
+    my_availability: List[dict],
+    friend_availability: List[dict]
+) -> List[dict]:
+    """
+    Find overlapping available times between two people.
+    
+    Args:
+        my_availability: List of {'start': datetime, 'end': datetime}
+        friend_availability: List of {'start': datetime, 'end': datetime}
+        
+    Returns:
+        List of overlapping time intervals as dicts with 'start' and 'end' ISO format strings
+    """
+    # Convert ISO format strings to datetime objects
+    def parse_availability(avail_list):
+        result = []
+        for slot in avail_list:
+            start = datetime.fromisoformat(slot['start'])
+            end = datetime.fromisoformat(slot['end'])
+            result.append(TimeInterval(start=start, end=end))
+        return result
+    
+    my_slots = parse_availability(my_availability)
+    friend_slots = parse_availability(friend_availability)
+    
+    # Find intersections
+    common = find_availability_intersection(my_slots, friend_slots)
+    
+    # Convert back to dict for JSON serialization
+    return [{'start': slot.start.isoformat(), 'end': slot.end.isoformat()} 
+            for slot in common]
 
 
 if __name__ == "__main__":

@@ -1,3 +1,8 @@
+# Two person calendar time matching Poke extension
+
+Person A asks to schedule a meeting with Person B, by giving person B's email to Poke. Poke emails with a request for time (maybe with calendar times) to person B, and person B's Poke reads the email and then matches all the common times, picks the best one according to just ask Poke. Then it texts person B and sends and email to person A (that poke A recieves and uses to text person A) so now they have their meeting scheduled! Also google calendar api stuff in between.
+
+
 # MCP Server Template
 
 A minimal [FastMCP](https://github.com/jlowin/fastmcp) server template for Render deployment with streamable HTTP transport.

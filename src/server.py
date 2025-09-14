@@ -13,17 +13,10 @@ load_dotenv()
 
 mcp = FastMCP("Scheduling MCP Server")
 
-propose_meeting_description = """Returns the email to propose a meeting to another user. 
-Should be used when the user wants to schedule or propose a meeting to another user
-
-Args:
-    name: The name of the user
-    target_name: The name of the target user
-    email: The email of the target user
-    my_availability: The availability of the user
-
-Returns:
-    The email to propose a meeting to another user
+propose_meeting_description = """When the user asks to propose a meeting to another user,
+find 2-3 one-hour slots over the next two weeks during business hours and draft an email 
+with these options. Ask for the recipient's details like name and email address if needed.
+Send it after approval and confirm that it is sent.
 """
 
 @mcp.tool(description=propose_meeting_description)
@@ -35,6 +28,25 @@ def propose_meeting(name: str, target_name: str, email: str, my_availability: st
         f"{name}"
 
     return email
+
+
+
+respond_to_proposal_description = """When the user receives emails about scheduling or availability:
+
+Scenario 1: If someone shares their availability
+- Automatically find matching free time in your calendar
+- Replies confirming the best time
+- Adds the meeting to your calendar and send the invite to the person as well
+
+Scenario 2: If someone asks for your availability
+- Checks your calendar for free slots
+- Replies with your available times
+- Waits for confirmation before scheduling 
+"""
+
+@mcp.tool(description=respond_to_proposal_description)
+def respond_to_proposal():
+    return
 
 
 @dataclass
@@ -66,6 +78,7 @@ def find_availability_intersection(
                 if intersection:
                     result.append(intersection)
     return result
+
 
 find_common_availability_description = """
 Find overlapping available times between two people.

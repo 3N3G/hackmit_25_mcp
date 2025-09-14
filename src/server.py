@@ -18,6 +18,7 @@ find 2-3 one-hour slots over the next two weeks during business hours and draft 
 with these options.
 
 Make sure that you check my calendar to see that I'm actually free during those time slots.
+Return all the possible options.
 
 Ask for the recipient's details like name and email address if needed.
 Send it after approval and confirm that it is sent.
@@ -34,17 +35,17 @@ def propose_meeting(name: str, target_name: str, email: str, my_availability: st
     return email
 
 
-
 respond_to_proposal_description = """When the user receives emails about scheduling or availability:
 
 Scenario 1: If someone shares their availability
 - Automatically find matching free time in your calendar
+- Ask the user which time slot they prefer
 - Replies confirming the best time
 - Adds the meeting to your calendar and send the invite to the person as well
 
 Scenario 2: If someone asks for your availability
-- Checks your calendar for free slots
-- Replies with your available times
+- Checks your calendar for free slots with in business hours. Return all the possible options
+- Reply with your available times
 - Waits for confirmation before scheduling 
 """
 

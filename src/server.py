@@ -15,7 +15,11 @@ mcp = FastMCP("Scheduling MCP Server")
 
 propose_meeting_description = """When the user asks to propose a meeting to another user,
 find 2-3 one-hour slots over the next two weeks during business hours and draft an email 
-with these options. Ask for the recipient's details like name and email address if needed.
+with these options.
+
+Make sure that you check my calendar to see that I'm actually free during those time slots.
+
+Ask for the recipient's details like name and email address if needed.
 Send it after approval and confirm that it is sent.
 """
 
